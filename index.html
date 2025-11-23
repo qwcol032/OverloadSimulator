@@ -1,0 +1,106 @@
+<div class="container">
+  <header class="grid">
+    <div class="card">
+      <h1>소장품 레벨업 시뮬레이터</h1>
+      <div class="flex">
+        <div class="right muted code" id="stateText"></div>
+      </div>
+    </div>
+  </header>
+
+  <!-- 현재 상태 -->
+  <section class="grid">
+    <div class="card span6">
+      <div class="flex" style="gap:12px;align-items:center">
+        <h2>현재 상태</h2>
+        <button class="btn" id="resetState" style="width:auto;padding:.4rem .8rem">초기화 (R0)</button>
+      </div>
+      <div class="row3">
+        <div>
+          <label for="grade">소장품 등급</label>
+          <select id="grade">
+            <option value="R">R</option>
+            <option value="SR">SR</option>
+          </select>
+        </div>
+        <div>
+          <label for="level">레벨 (0~15)</label>
+          <select id="level"></select>
+        </div>
+        <div>
+          <label for="exp">경험치 (100 단위)</label>
+          <input type="number" id="exp" step="100" min="0" value="0" />
+        </div>
+      </div>
+      <div class="sep"></div>
+      <div class="row3">
+        <div>
+          <label>R 1레벨당 필요 경험치</label>
+          <div class="code muted">1000</div>
+        </div>
+        <div>
+          <label>SR 1레벨당 필요 경험치</label>
+          <div class="code muted">3000</div>
+        </div>
+        <div>
+          <label>대성공 레벨 단위</label>
+          <div class="code muted">5</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 단일 시도 -->
+    <div class="card span6">
+      <h2>단일 시도</h2>
+      <div class="btns">
+        <button class="btn a" id="btnA">초급자용 사용 (+200) ・ <span id="pA">-</span></button>
+        <button class="btn b" id="btnB">중급자용 사용 (+500) ・ <span id="pB">-</span></button>
+        <button class="btn c" id="btnC">상급자용 사용 (+1000) ・ <span id="pC">-</span></button>
+      </div>
+      <div class="counts muted code">사용 기록 — 초급자: <span id="countA">0</span> · 중급자: <span id="countB">0</span> · 상급자: <span id="countC">0</span></div>
+      <small class="muted">버튼의 대성공 확률은 "현재 등급/레벨" 기준입니다.</small>
+      <div class="log" id="singleLog" aria-live="polite"></div>
+    </div>
+  </section>
+
+  <!-- 시뮬레이터 -->
+  <section class="grid">
+    <div class="card">
+      <h2>시뮬레이터</h2>
+      <div class="row4">
+        <div>
+          <label for="ka">초급자용 보유 (A)</label>
+          <input type="number" id="ka" min="0" value="30" />
+        </div>
+        <div>
+          <label for="kb">중급자용 보유 (B)</label>
+          <input type="number" id="kb" min="0" value="8" />
+        </div>
+        <div>
+          <label for="kc">상급자용 보유 (C)</label>
+          <input type="number" id="kc" min="0" value="2" />
+        </div>
+        <div>
+          <label for="iters">iterations</label>
+          <input type="number" id="iters" min="1" value="1000" />
+        </div>
+      </div>
+      <div class="row" style="margin-top:8px;grid-template-columns:2fr 1fr">
+        <div>
+          <label for="seed">seed (비워두면 무작위 8자리 생성)</label>
+          <input type="number" id="seed" placeholder="예: 12345678" />
+        </div>
+        <div class="flex" style="align-items:end">
+          <button class="btn" id="runSim">시뮬레이션 실행</button>
+        </div>
+      </div>
+      <div class="sep"></div>
+      <!-- progress -->
+      <div class="progress" aria-hidden="true">
+        <div id="bar" class="bar"></div>
+      </div>
+      <small class="muted" id="progressText"></small>
+      <div id="simOut" style="margin-top:8px"></div>
+    </div>
+  </section>
+</div>
