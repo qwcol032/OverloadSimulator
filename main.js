@@ -205,6 +205,66 @@ function drawHistogram(canvas, hist) {
   ctx.fillText(`0`, padL - 18, padT + plotH + 12);
   ctx.fillText(`${maxX}`, padL + plotW - 26, padT + plotH + 12);
   ctx.fillText(`${maxY}`, 6, padT + 12);
+
+  function optionLabel(v) {
+    const found = OPTION_ITEMS.find(x => x.v === v);
+    return found ? found.label : String(v);
+  }
+
+  function renderExamples(examples) {
+    ui.examplesBox.innerHTML = "";
+  
+    if (!examples || examples.length === 0) {
+      const empty = document.createElement("div");
+      empty.className = "muted small";
+      empty.textContent = "표시할 예시가 없습니다.";
+      ui.examplesBox.appendChild(empty);
+      return;
+    }
+  
+    examples.forEach((ex, idx) => {
+      const card = document.createElement("div");
+      card.className = "exCard";
+  
+      const top = document.createElement("div");
+      top.className = "exTop";
+  
+      const badge = document.createElement("div");
+      badge.className = "exBadge";
+      badge.textContent = `예시 #${idx + 1}`;
+  
+      const meta = document.createElement("div");
+      meta.className = "exMeta";
+      meta.textContent = `모듈 ${ex.module} / 리롤 ${ex.rerollCnt} / 커스텀키 ${ex.customKey}`;
+  
+      top.appendChild(badge);
+      top.appendChild(meta);
+  
+      const rows = document.createElement("div");
+      rows.className = "exRows";
+  
+      for (let i = 0; i < 3; i++) {
+        const row = document.createElement("div");
+        row.className = "exRow";
+  
+        const t = document.createElement("div");
+        t.className = "t";
+        t.textContent = `${i + 1}줄 ${ex.locks[i] ? "(잠금)" : ""}`;
+  
+        const v = document.createElement("div");
+        v.className = "v";
+        v.textContent = optionLabel(ex.options[i]);
+  
+        row.appendChild(t);
+        row.appendChild(v);
+        rows.appendChild(row);
+      }
+  
+      card.appendChild(top);
+      card.appendChild(rows);
+      ui.examplesBox.appendChild(card);
+    });
+  }
 }
 
 let worker = null;
@@ -258,6 +318,7 @@ ui.runBtn.addEventListener("click", () => {
       ui.avgCustom.textContent = (totalCustom / n).toFixed(3);
 
       drawHistogram(ui.canvas, hist);
+      renderExamples(msg.examples);
       return;
     }
   };
@@ -269,6 +330,7 @@ ui.runBtn.addEventListener("click", () => {
   };
 
   worker.postMessage({ type: "run", config });
+
 });
 
 ui.stopBtn.addEventListener("click", () => {
