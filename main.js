@@ -1,5 +1,4 @@
-/* main.js: UI 구성 + Worker 호출 + 결과 렌더 (히스토그램 아래 성공 예시 5개 출력 포함) */
-console.log("main.js LOADED v20260114_1");
+/* main.js: UI 구성 + Worker 호출 + 결과 렌더 (줄 초기화 + 선택 강조 + 성공 예시 5개 포함) */
 
 const OPTION_ITEMS = [
   { v: 0, label: "효과 없음 (0)" },
@@ -30,6 +29,20 @@ function rowTitle(i) {
   return `${i + 1}줄`;
 }
 
+/* ===== 선택 강조 관련 ===== */
+function updateSelectHighlight(sel) {
+  const v = Number(sel.value);
+  if (v !== 0) sel.classList.add("optSelected");
+  else sel.classList.remove("optSelected");
+}
+
+function updateRowHighlight(rowEl, selects) {
+  const anySelected = selects.some(s => Number(s.value) !== 0);
+  if (anySelected) rowEl.classList.add("rowHasSelection");
+  else rowEl.classList.remove("rowHasSelection");
+}
+
+/* ===== Row UI 생성 ===== */
 function buildRowUI(container, i) {
   const wrap = document.createElement("div");
   wrap.className = "card";
@@ -38,7 +51,7 @@ function buildRowUI(container, i) {
 
   const header = document.createElement("div");
   header.style.display = "grid";
-  header.style.gridTemplateColumns = "1fr auto";
+  header.style.gridTemplateColumns = "1fr auto auto";
   header.style.gap = "10px";
   header.style.alignItems = "center";
 
@@ -57,6 +70,13 @@ function buildRowUI(container, i) {
   lockLabel.appendChild(lockText);
   header.appendChild(lockLabel);
 
+  // ✅ 초기화 버튼
+  const resetBtn = document.createElement("button");
+  resetBtn.type = "button";
+  resetBtn.className = "danger smallBtn";
+  resetBtn.textContent = "초기화";
+  header.appendChild(resetBtn);
+
   wrap.appendChild(header);
 
   // 목표 옵션 5개
@@ -74,9 +94,17 @@ function buildRowUI(container, i) {
   for (let k = 0; k < 5; k++) {
     const sel = makeSelect(0);
     sel.id = `t${i}_${k}`;
+
+    // 값 바뀔 때마다 강조 업데이트
+    sel.addEventListener("change", () => {
+      updateSelectHighlight(sel);
+      updateRowHighlight(wrap, targetSelects);
+    });
+
     targetSelects.push(sel);
     targetsGrid.appendChild(sel);
   }
+
   targetsField.appendChild(targetsGrid);
   wrap.appendChild(targetsField);
 
@@ -86,14 +114,35 @@ function buildRowUI(container, i) {
     targetSelects[0].disabled = false;
     for (let k = 1; k < 5; k++) targetSelects[k].disabled = isLocked;
   };
+
   lock.addEventListener("change", sync);
+
+  // ✅ 초기화 버튼 동작:
+  // - 잠금 해제
+  // - 5개 옵션 모두 0으로
+  // - 강조 제거
+  resetBtn.addEventListener("click", () => {
+    lock.checked = false;
+
+    for (const sel of targetSelects) {
+      sel.value = "0";
+      updateSelectHighlight(sel);
+    }
+
+    sync();
+    updateRowHighlight(wrap, targetSelects);
+  });
+
+  // 초기 상태 반영
   sync();
+  for (const sel of targetSelects) updateSelectHighlight(sel);
+  updateRowHighlight(wrap, targetSelects);
 
   container.appendChild(wrap);
-
-  return { lock, targetSelects };
+  return { lock, targetSelects, wrap };
 }
 
+/* ===== UI 레퍼런스 ===== */
 const ui = {
   rows: [],
   dupMode: document.getElementById("dupMode"),
@@ -149,7 +198,7 @@ function readConfig() {
 
   return {
     locks,
-    lockValues, // [3]  (locks=true면 targets[i][0])
+    lockValues, // [3]
     targets, // [[5],[5],[5]]
     limits: ui.limits.map((x) => x.checked),
     dupMode: ui.dupMode.checked,
@@ -160,10 +209,10 @@ function readConfig() {
   };
 }
 
+/* ===== 히스토그램 ===== */
 function drawHistogram(canvas, hist) {
   const ctx = canvas.getContext("2d");
-  const W = canvas.width,
-    H = canvas.height;
+  const W = canvas.width, H = canvas.height;
   ctx.clearRect(0, 0, W, H);
 
   let maxX = 0;
@@ -174,14 +223,13 @@ function drawHistogram(canvas, hist) {
     if (v > maxY) maxY = v;
   }
   if (maxY === 0) {
+    ctx.fillStyle = "rgba(233,238,247,.85)";
+    ctx.font = "12px system-ui";
     ctx.fillText("데이터 없음", 20, 30);
     return;
   }
 
-  const padL = 46,
-    padR = 14,
-    padT = 14,
-    padB = 30;
+  const padL = 46, padR = 14, padT = 14, padB = 30;
   const plotW = W - padL - padR;
   const plotH = H - padT - padB;
 
@@ -214,7 +262,6 @@ function drawHistogram(canvas, hist) {
 }
 
 /* ===== 성공 예시 렌더 ===== */
-
 function optionLabel(v) {
   const found = OPTION_ITEMS.find((x) => x.v === v);
   return found ? found.label : String(v);
@@ -222,7 +269,6 @@ function optionLabel(v) {
 
 function renderExamples(examples) {
   if (!ui.examplesBox) return;
-
   ui.examplesBox.innerHTML = "";
 
   if (!examples || examples.length === 0) {
@@ -278,7 +324,6 @@ function renderExamples(examples) {
 }
 
 /* ===== Worker 연결 ===== */
-
 let worker = null;
 
 function setRunning(running) {
@@ -298,8 +343,7 @@ ui.runBtn.addEventListener("click", () => {
   const config = readConfig();
 
   if (worker) worker.terminate();
-  worker = new Worker("./sim.worker.js?v=20260114_1");
-
+  worker = new Worker("./sim.worker.js");
 
   setRunning(true);
   setStatus("시뮬 준비 중...", 0);
@@ -333,7 +377,6 @@ ui.runBtn.addEventListener("click", () => {
 
       drawHistogram(ui.canvas, hist);
       renderExamples(examples);
-
       return;
     }
   };
