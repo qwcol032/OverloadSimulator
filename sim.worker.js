@@ -199,9 +199,9 @@ function run(config) {
     rerollCnt: 0,
   };
 
-  // 잠금값 반영
+  // 잠금값 반영 (초기잠금이면 "첫번째 목표 옵션" 값을 잠금값으로 사용)
   for (let i = 0; i < 3; i++) {
-    if (base.locks[i]) base.options[i] = (config.lockVals[i] | 0);
+    if (base.locks[i]) base.options[i] = (config.lockValues[i] | 0);
   }
 
   // 초기 reroll 비용
