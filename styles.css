@@ -194,3 +194,26 @@ select.optSelected {
   font-size: 12px;
   font-weight: 800;
 }
+
+/* ✅ 드롭다운이 클릭/포커스될 때 흰색으로 변하는 현상 방지 */
+select,
+select:hover,
+select:focus,
+select:active {
+  background: #0f1520;
+  color: var(--text);
+}
+
+select:focus {
+  outline: 2px solid rgba(90, 166, 255, 0.35);
+  outline-offset: 2px;
+}
+
+/* 선택 강조 상태에서도 포커스 시 배경 유지 */
+select.optSelected,
+select.optSelected:hover,
+select.optSelected:focus,
+select.optSelected:active {
+  background: rgba(90, 166, 255, 0.10);
+  border-color: rgba(90, 166, 255, 0.65);
+}
