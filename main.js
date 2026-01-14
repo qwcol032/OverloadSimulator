@@ -148,4 +148,131 @@ function readConfig() {
     locks,
     lockValues,  // [3]  (locks=true면 targets[i][0])
     targets,     // [[5],[5],[5]]
-    limits: ui.li
+    limits: ui.limits.map(x => x.checked),
+    dupMode: ui.dupMode.checked,
+    customMode: ui.customMode.checked,
+    n,
+    maxModule,
+    seed,
+  };
+}
+
+function drawHistogram(canvas, hist) {
+  const ctx = canvas.getContext("2d");
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
+
+  let maxX = 0;
+  let maxY = 0;
+  for (let i = 0; i < hist.length; i++) {
+    const v = hist[i];
+    if (v > 0) maxX = i;
+    if (v > maxY) maxY = v;
+  }
+  if (maxY === 0) {
+    ctx.fillText("데이터 없음", 20, 30);
+    return;
+  }
+
+  const padL = 46, padR = 14, padT = 14, padB = 30;
+  const plotW = W - padL - padR;
+  const plotH = H - padT - padB;
+
+  ctx.strokeStyle = "rgba(154,167,189,.6)";
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(padL, padT);
+  ctx.lineTo(padL, padT + plotH);
+  ctx.lineTo(padL + plotW, padT + plotH);
+  ctx.stroke();
+
+  const bins = Math.max(1, maxX + 1);
+  const barW = plotW / bins;
+
+  ctx.fillStyle = "rgba(90,166,255,.75)";
+  for (let x = 0; x <= maxX; x++) {
+    const count = hist[x];
+    if (!count) continue;
+    const h = (count / maxY) * plotH;
+    const px = padL + x * barW;
+    const py = padT + plotH - h;
+    ctx.fillRect(px, py, Math.max(1, barW), h);
+  }
+
+  ctx.fillStyle = "rgba(233,238,247,.85)";
+  ctx.font = "12px system-ui";
+  ctx.fillText(`0`, padL - 18, padT + plotH + 12);
+  ctx.fillText(`${maxX}`, padL + plotW - 26, padT + plotH + 12);
+  ctx.fillText(`${maxY}`, 6, padT + 12);
+}
+
+let worker = null;
+
+function setRunning(running) {
+  ui.runBtn.disabled = running;
+  ui.stopBtn.disabled = !running;
+}
+
+function setStatus(text, pct = null) {
+  ui.statusText.textContent = text;
+  if (pct == null) return;
+  ui.progress.value = Math.max(0, Math.min(100, pct));
+}
+
+ui.runBtn.addEventListener("click", () => {
+  clearError();
+
+  const config = readConfig();
+
+  if (worker) worker.terminate();
+  worker = new Worker("./sim.worker.js");
+
+  setRunning(true);
+  setStatus("시뮬 준비 중...", 0);
+
+  worker.onmessage = (e) => {
+    const msg = e.data;
+
+    if (msg.type === "progress") {
+      const pct = Math.floor((msg.done / msg.total) * 100);
+      setStatus(`진행 중... (${msg.done}/${msg.total})`, pct);
+      return;
+    }
+
+    if (msg.type === "error") {
+      setRunning(false);
+      setStatus("오류로 중단", 0);
+      showError(msg.message);
+      return;
+    }
+
+    if (msg.type === "result") {
+      setRunning(false);
+      setStatus("완료", 100);
+
+      const { n, totalModule, totalReroll, totalCustom, hist } = msg;
+
+      ui.avgModule.textContent = (totalModule / n).toFixed(3);
+      ui.avgReroll.textContent = (totalReroll / n).toFixed(3);
+      ui.avgCustom.textContent = (totalCustom / n).toFixed(3);
+
+      drawHistogram(ui.canvas, hist);
+      return;
+    }
+  };
+
+  worker.onerror = (err) => {
+    setRunning(false);
+    setStatus("Worker 오류", 0);
+    showError(String(err.message || err));
+  };
+
+  worker.postMessage({ type: "run", config });
+});
+
+ui.stopBtn.addEventListener("click", () => {
+  if (worker) worker.terminate();
+  worker = null;
+  setRunning(false);
+  setStatus("사용자 중지", 0);
+});
