@@ -98,7 +98,6 @@ function buildRowUI(container, i) {
   targetsGrid.className = "targetsGrid";
 
   const targetSelects = [];
-  for (let k = 0; k < 5; k읊) {}
 
   for (let k = 0; k < 5; k++) {
     const sel = makeSelect(0);
