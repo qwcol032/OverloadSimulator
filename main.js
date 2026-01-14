@@ -1,4 +1,4 @@
-/* main.js: UI 구성 + Worker 호출 + 결과 렌더 */
+/* main.js: UI 구성 + Worker 호출 + 결과 렌더 (히스토그램 아래 성공 예시 5개 출력 포함) */
 
 const OPTION_ITEMS = [
   { v: 0, label: "효과 없음 (0)" },
@@ -62,7 +62,8 @@ function buildRowUI(container, i) {
   const targetsField = document.createElement("div");
   targetsField.className = "field";
   const targetsTitle = document.createElement("span");
-  targetsTitle.textContent = "목표 옵션 (5개)  —  ※ 초기잠금 체크 시: 첫번째 옵션을 잠금값(현재값)으로 사용";
+  targetsTitle.textContent =
+    "목표 옵션 (5개)  —  ※ 초기잠금 체크 시: 첫번째 옵션을 잠금값(현재값)으로 사용";
   targetsField.appendChild(targetsTitle);
 
   const targetsGrid = document.createElement("div");
@@ -133,11 +134,11 @@ function clearError() {
 }
 
 function readConfig() {
-  const locks = ui.rows.map(r => r.lock.checked);
-  const targets = ui.rows.map(r => r.targetSelects.map(s => Number(s.value)));
+  const locks = ui.rows.map((r) => r.lock.checked);
+  const targets = ui.rows.map((r) => r.targetSelects.map((s) => Number(s.value)));
 
   // ✅ 잠금값은 사용자 입력 UI가 아니라 "첫번째 목표 옵션"을 사용
-  const lockValues = targets.map((arr5, i) => locks[i] ? (arr5[0] | 0) : 0);
+  const lockValues = targets.map((arr5, i) => (locks[i] ? (arr5[0] | 0) : 0));
 
   const n = Math.max(1, Number(ui.n.value || 1));
   const maxModule = Math.max(1, Number(ui.maxModule.value || 2000));
@@ -147,9 +148,9 @@ function readConfig() {
 
   return {
     locks,
-    lockValues,  // [3]  (locks=true면 targets[i][0])
-    targets,     // [[5],[5],[5]]
-    limits: ui.limits.map(x => x.checked),
+    lockValues, // [3]  (locks=true면 targets[i][0])
+    targets, // [[5],[5],[5]]
+    limits: ui.limits.map((x) => x.checked),
     dupMode: ui.dupMode.checked,
     customMode: ui.customMode.checked,
     n,
@@ -160,7 +161,8 @@ function readConfig() {
 
 function drawHistogram(canvas, hist) {
   const ctx = canvas.getContext("2d");
-  const W = canvas.width, H = canvas.height;
+  const W = canvas.width,
+    H = canvas.height;
   ctx.clearRect(0, 0, W, H);
 
   let maxX = 0;
@@ -175,7 +177,10 @@ function drawHistogram(canvas, hist) {
     return;
   }
 
-  const padL = 46, padR = 14, padT = 14, padB = 30;
+  const padL = 46,
+    padR = 14,
+    padT = 14,
+    padB = 30;
   const plotW = W - padL - padR;
   const plotH = H - padT - padB;
 
@@ -205,67 +210,73 @@ function drawHistogram(canvas, hist) {
   ctx.fillText(`0`, padL - 18, padT + plotH + 12);
   ctx.fillText(`${maxX}`, padL + plotW - 26, padT + plotH + 12);
   ctx.fillText(`${maxY}`, 6, padT + 12);
-
-  function optionLabel(v) {
-    const found = OPTION_ITEMS.find(x => x.v === v);
-    return found ? found.label : String(v);
-  }
-
-  function renderExamples(examples) {
-    ui.examplesBox.innerHTML = "";
-  
-    if (!examples || examples.length === 0) {
-      const empty = document.createElement("div");
-      empty.className = "muted small";
-      empty.textContent = "표시할 예시가 없습니다.";
-      ui.examplesBox.appendChild(empty);
-      return;
-    }
-  
-    examples.forEach((ex, idx) => {
-      const card = document.createElement("div");
-      card.className = "exCard";
-  
-      const top = document.createElement("div");
-      top.className = "exTop";
-  
-      const badge = document.createElement("div");
-      badge.className = "exBadge";
-      badge.textContent = `예시 #${idx + 1}`;
-  
-      const meta = document.createElement("div");
-      meta.className = "exMeta";
-      meta.textContent = `모듈 ${ex.module} / 리롤 ${ex.rerollCnt} / 커스텀키 ${ex.customKey}`;
-  
-      top.appendChild(badge);
-      top.appendChild(meta);
-  
-      const rows = document.createElement("div");
-      rows.className = "exRows";
-  
-      for (let i = 0; i < 3; i++) {
-        const row = document.createElement("div");
-        row.className = "exRow";
-  
-        const t = document.createElement("div");
-        t.className = "t";
-        t.textContent = `${i + 1}줄 ${ex.locks[i] ? "(잠금)" : ""}`;
-  
-        const v = document.createElement("div");
-        v.className = "v";
-        v.textContent = optionLabel(ex.options[i]);
-  
-        row.appendChild(t);
-        row.appendChild(v);
-        rows.appendChild(row);
-      }
-  
-      card.appendChild(top);
-      card.appendChild(rows);
-      ui.examplesBox.appendChild(card);
-    });
-  }
 }
+
+/* ===== 성공 예시 렌더 ===== */
+
+function optionLabel(v) {
+  const found = OPTION_ITEMS.find((x) => x.v === v);
+  return found ? found.label : String(v);
+}
+
+function renderExamples(examples) {
+  if (!ui.examplesBox) return;
+
+  ui.examplesBox.innerHTML = "";
+
+  if (!examples || examples.length === 0) {
+    const empty = document.createElement("div");
+    empty.className = "muted small";
+    empty.textContent = "표시할 예시가 없습니다.";
+    ui.examplesBox.appendChild(empty);
+    return;
+  }
+
+  examples.forEach((ex, idx) => {
+    const card = document.createElement("div");
+    card.className = "exCard";
+
+    const top = document.createElement("div");
+    top.className = "exTop";
+
+    const badge = document.createElement("div");
+    badge.className = "exBadge";
+    badge.textContent = `예시 #${idx + 1}`;
+
+    const meta = document.createElement("div");
+    meta.className = "exMeta";
+    meta.textContent = `모듈 ${ex.module} / 리롤 ${ex.rerollCnt} / 커스텀키 ${ex.customKey}`;
+
+    top.appendChild(badge);
+    top.appendChild(meta);
+
+    const rows = document.createElement("div");
+    rows.className = "exRows";
+
+    for (let i = 0; i < 3; i++) {
+      const row = document.createElement("div");
+      row.className = "exRow";
+
+      const t = document.createElement("div");
+      t.className = "t";
+      t.textContent = `${i + 1}줄 ${ex.locks[i] ? "(잠금)" : ""}`;
+
+      const v = document.createElement("div");
+      v.className = "v";
+      v.textContent = optionLabel(ex.options[i]);
+
+      row.appendChild(t);
+      row.appendChild(v);
+      rows.appendChild(row);
+    }
+
+    card.appendChild(top);
+    card.appendChild(rows);
+    ui.examplesBox.appendChild(card);
+  });
+}
+
+/* ===== Worker 연결 ===== */
 
 let worker = null;
 
@@ -290,6 +301,7 @@ ui.runBtn.addEventListener("click", () => {
 
   setRunning(true);
   setStatus("시뮬 준비 중...", 0);
+  renderExamples([]); // 실행 시 예시 초기화
 
   worker.onmessage = (e) => {
     const msg = e.data;
@@ -311,14 +323,15 @@ ui.runBtn.addEventListener("click", () => {
       setRunning(false);
       setStatus("완료", 100);
 
-      const { n, totalModule, totalReroll, totalCustom, hist } = msg;
+      const { n, totalModule, totalReroll, totalCustom, hist, examples } = msg;
 
       ui.avgModule.textContent = (totalModule / n).toFixed(3);
       ui.avgReroll.textContent = (totalReroll / n).toFixed(3);
       ui.avgCustom.textContent = (totalCustom / n).toFixed(3);
 
       drawHistogram(ui.canvas, hist);
-      renderExamples(msg.examples);
+      renderExamples(examples);
+
       return;
     }
   };
@@ -330,7 +343,6 @@ ui.runBtn.addEventListener("click", () => {
   };
 
   worker.postMessage({ type: "run", config });
-
 });
 
 ui.stopBtn.addEventListener("click", () => {
