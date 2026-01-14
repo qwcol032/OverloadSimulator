@@ -118,3 +118,60 @@ progress::-webkit-progress-value { background: var(--primary); }
 select {
   min-height: 42px;
 }
+
+.examples {
+  display: grid;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.exCard {
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 12px;
+  background: #0f1520;
+}
+
+.exTop {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: baseline;
+  margin-bottom: 8px;
+}
+
+.exBadge {
+  font-weight: 900;
+  opacity: 0.9;
+}
+
+.exMeta {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.exRows {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+@media (max-width: 560px) {
+  .exRows { grid-template-columns: 1fr; }
+}
+
+.exRow {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 10px;
+}
+
+.exRow .t {
+  color: var(--muted);
+  font-size: 12px;
+  margin-bottom: 6px;
+}
+
+.exRow .v {
+  font-weight: 800;
+}
