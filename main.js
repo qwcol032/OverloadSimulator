@@ -1,4 +1,5 @@
 /* main.js: UI 구성 + Worker 호출 + 결과 렌더 (히스토그램 아래 성공 예시 5개 출력 포함) */
+console.log("main.js LOADED v20260114_1");
 
 const OPTION_ITEMS = [
   { v: 0, label: "효과 없음 (0)" },
@@ -297,7 +298,8 @@ ui.runBtn.addEventListener("click", () => {
   const config = readConfig();
 
   if (worker) worker.terminate();
-  worker = new Worker("./sim.worker.js");
+  worker = new Worker("./sim.worker.js?v=20260114_1");
+
 
   setRunning(true);
   setStatus("시뮬 준비 중...", 0);
