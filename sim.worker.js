@@ -227,6 +227,7 @@ function run(config) {
 
   // 결과 집계: 정렬 없이 히스토그램
   const hist = new Array(maxModule + 1).fill(0);
+  const examples = [];
 
   let totalModule = 0;
   let totalReroll = 0;
@@ -259,6 +260,15 @@ function run(config) {
         totalModule += m;
         totalCustom += state.customKey;
         totalReroll += state.rerollCnt;
+        if (examples.length < 5) {
+          examples.push({
+            module: state.module,
+            rerollCnt: state.rerollCnt,
+            customKey: state.customKey,
+            options: [state.options[0], state.options[1], state.options[2]],
+            locks: [state.locks[0], state.locks[1], state.locks[2]],
+          });
+        }
         break;
       }
 
@@ -350,5 +360,6 @@ function run(config) {
     totalReroll,
     totalCustom,
     hist,
+    examples,
   };
 }
