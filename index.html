@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>3줄 리롤 시뮬레이터 (Worker)</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <header class="container">
+    <h1>3줄 리롤 시뮬레이터</h1>
+    <p class="muted">
+      - 메인 스레드 프리징 방지를 위해 WebWorker로 계산합니다.<br/>
+      - 옵션 값은 A(1)~I(9), 비움(0) 입니다.
+    </p>
+  </header>
+
+  <main class="container grid">
+    <section class="card">
+      <h2>입력</h2>
+
+      <div id="rows"></div>
+
+      <hr/>
+
+      <div class="row2">
+        <label class="check">
+          <input type="checkbox" id="dupMode" />
+          <span><b>Dup_option</b> (줄 무시 매칭): 각 줄 요구옵션은 “어느 줄에 뜨든” 1번만 떠도 만족</span>
+        </label>
+
+        <label class="check">
+          <input type="checkbox" id="customMode" />
+          <span><b>커스텀락키 사용</b> (잠금 1개: 20 / 2개: 50, 리롤마다 소모)</span>
+        </label>
+      </div>
+
+      <h3>자동 잠금(limits)</h3>
+      <div class="row2">
+        <label class="check"><input type="checkbox" id="limit0" /> <span>1줄: 좋은 옵션 뜨면 자동 잠금</span></label>
+        <label class="check"><input type="checkbox" id="limit1" /> <span>2줄: 좋은 옵션 뜨면 자동 잠금</span></label>
+        <label class="check"><input type="checkbox" id="limit2" /> <span>3줄: 좋은 옵션 뜨면 자동 잠금</span></label>
+        <label class="check"><input type="checkbox" id="limit3" /> <span>2-3 연동: 3줄 잠금 후 2줄도 조건되면 잠금</span></label>
+      </div>
+
+      <h3>시뮬 설정</h3>
+      <div class="row2">
+        <label class="field">
+          <span>시뮬 횟수(n)</span>
+          <input type="number" id="n" min="1" step="1" value="10000" />
+        </label>
+        <label class="field">
+          <span>모듈 상한(안전장치)</span>
+          <input type="number" id="maxModule" min="1" step="1" value="2000" />
+        </label>
+        <label class="field">
+          <span>난수 시드(선택)</span>
+          <input type="number" id="seed" step="1" placeholder="비우면 랜덤" />
+        </label>
+      </div>
+
+      <div class="row2">
+        <button id="runBtn" class="primary">시뮬 실행</button>
+        <button id="stopBtn" class="danger" disabled>중지</button>
+      </div>
+
+      <div class="status">
+        <div class="muted" id="statusText">대기 중</div>
+        <progress id="progress" value="0" max="100"></progress>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>결과</h2>
+      <div id="errorBox" class="error hidden"></div>
+
+      <div class="stats">
+        <div class="stat">
+          <div class="label">평균 모듈</div>
+          <div class="value" id="avgModule">-</div>
+        </div>
+        <div class="stat">
+          <div class="label">평균 리롤 횟수</div>
+          <div class="value" id="avgReroll">-</div>
+        </div>
+        <div class="stat">
+          <div class="label">평균 커스텀키</div>
+          <div class="value" id="avgCustom">-</div>
+        </div>
+      </div>
+
+      <h3>분포(히스토그램)</h3>
+      <canvas id="histCanvas" width="900" height="360"></canvas>
+      <div class="muted small">
+        막대가 너무 많으면 확대(브라우저 줌)해서 보세요.
+      </div>
+    </section>
+  </main>
+
+  <footer class="container muted small">
+    로컬에서 file:// 로 열면 Worker가 막힐 수 있어요. (VSCode Live Server 등으로 테스트 권장)
+  </footer>
+
+  <script src="./main.js"></script>
+</body>
+</html>
