@@ -1,4 +1,9 @@
-/* main.js: UI 구성 + Worker 호출 + 결과 렌더 (줄 초기화 + 선택 강조 + 성공 예시 5개 포함) */
+/* main.js: UI 구성 + Worker 호출 + 결과 렌더
+   - 줄 초기화 버튼
+   - 0이 아닌 옵션 강조
+   - ✅ 잠금 체크 시 2~5번째 옵션을 자동으로 0으로 초기화(요청 반영)
+   - 성공 예시 5개 렌더
+*/
 
 const OPTION_ITEMS = [
   { v: 0, label: "효과 없음 (0)" },
@@ -37,7 +42,7 @@ function updateSelectHighlight(sel) {
 }
 
 function updateRowHighlight(rowEl, selects) {
-  const anySelected = selects.some(s => Number(s.value) !== 0);
+  const anySelected = selects.some((s) => Number(s.value) !== 0);
   if (anySelected) rowEl.classList.add("rowHasSelection");
   else rowEl.classList.remove("rowHasSelection");
 }
@@ -70,7 +75,7 @@ function buildRowUI(container, i) {
   lockLabel.appendChild(lockText);
   header.appendChild(lockLabel);
 
-  // ✅ 초기화 버튼
+  // 초기화 버튼
   const resetBtn = document.createElement("button");
   resetBtn.type = "button";
   resetBtn.className = "danger smallBtn";
@@ -108,16 +113,31 @@ function buildRowUI(container, i) {
   targetsField.appendChild(targetsGrid);
   wrap.appendChild(targetsField);
 
-  // 잠금 체크 시: 첫번째만 활성화(잠금값으로 쓰이기 때문), 나머지는 비활성
-  const sync = () => {
+  // ✅ 잠금 체크 시 처리:
+  // - 2~5번째 옵션을 자동으로 0으로 초기화
+  // - 2~5번째는 비활성
+  // - 첫번째는 계속 활성(잠금값으로 사용)
+  const applyLockRule = () => {
     const isLocked = lock.checked;
+
+    if (isLocked) {
+      // 2~5번째 옵션을 0으로 초기화
+      for (let k = 1; k < 5; k++) {
+        targetSelects[k].value = "0";
+        updateSelectHighlight(targetSelects[k]);
+      }
+    }
+
     targetSelects[0].disabled = false;
     for (let k = 1; k < 5; k++) targetSelects[k].disabled = isLocked;
+
+    // 줄 강조 재계산
+    updateRowHighlight(wrap, targetSelects);
   };
 
-  lock.addEventListener("change", sync);
+  lock.addEventListener("change", applyLockRule);
 
-  // ✅ 초기화 버튼 동작:
+  // 초기화 버튼 동작:
   // - 잠금 해제
   // - 5개 옵션 모두 0으로
   // - 강조 제거
@@ -127,14 +147,14 @@ function buildRowUI(container, i) {
     for (const sel of targetSelects) {
       sel.value = "0";
       updateSelectHighlight(sel);
+      sel.disabled = false;
     }
 
-    sync();
-    updateRowHighlight(wrap, targetSelects);
+    applyLockRule();
   });
 
   // 초기 상태 반영
-  sync();
+  applyLockRule();
   for (const sel of targetSelects) updateSelectHighlight(sel);
   updateRowHighlight(wrap, targetSelects);
 
@@ -187,7 +207,7 @@ function readConfig() {
   const locks = ui.rows.map((r) => r.lock.checked);
   const targets = ui.rows.map((r) => r.targetSelects.map((s) => Number(s.value)));
 
-  // ✅ 잠금값은 사용자 입력 UI가 아니라 "첫번째 목표 옵션"을 사용
+  // 잠금값은 "첫번째 목표 옵션"을 사용
   const lockValues = targets.map((arr5, i) => (locks[i] ? (arr5[0] | 0) : 0));
 
   const n = Math.max(1, Number(ui.n.value || 1));
@@ -198,8 +218,8 @@ function readConfig() {
 
   return {
     locks,
-    lockValues, // [3]
-    targets, // [[5],[5],[5]]
+    lockValues,
+    targets,
     limits: ui.limits.map((x) => x.checked),
     dupMode: ui.dupMode.checked,
     customMode: ui.customMode.checked,
@@ -212,7 +232,8 @@ function readConfig() {
 /* ===== 히스토그램 ===== */
 function drawHistogram(canvas, hist) {
   const ctx = canvas.getContext("2d");
-  const W = canvas.width, H = canvas.height;
+  const W = canvas.width,
+    H = canvas.height;
   ctx.clearRect(0, 0, W, H);
 
   let maxX = 0;
@@ -229,7 +250,10 @@ function drawHistogram(canvas, hist) {
     return;
   }
 
-  const padL = 46, padR = 14, padT = 14, padB = 30;
+  const padL = 46,
+    padR = 14,
+    padT = 14,
+    padB = 30;
   const plotW = W - padL - padR;
   const plotH = H - padT - padB;
 
@@ -343,12 +367,12 @@ ui.runBtn.addEventListener("click", () => {
   const config = readConfig();
 
   if (worker) worker.terminate();
+  // ✅ 너가 설정한 버전 파라미터 유지
   worker = new Worker("./sim.worker.js?v=fix2");
-
 
   setRunning(true);
   setStatus("시뮬 준비 중...", 0);
-  renderExamples([]); // 실행 시 예시 초기화
+  renderExamples([]);
 
   worker.onmessage = (e) => {
     const msg = e.data;
