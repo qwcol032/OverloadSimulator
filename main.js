@@ -1,7 +1,9 @@
-/* main.js: UI 구성 + Worker 호출 + 결과 렌더
+/* main.js
    - 줄 초기화 버튼
    - 0이 아닌 옵션 강조
-   - ✅ 잠금 체크 시 2~5번째 옵션을 자동으로 0으로 초기화(요청 반영)
+   - 잠금 체크 시 2~5번째 옵션 자동 0 초기화
+   - ✅ 난수 시드 입력 제거(항상 랜덤)
+   - ✅ 전체 초기화 버튼 추가(줄/잠금/dup/custom/limits 모두 초기화)
    - 성공 예시 5개 렌더
 */
 
@@ -75,7 +77,7 @@ function buildRowUI(container, i) {
   lockLabel.appendChild(lockText);
   header.appendChild(lockLabel);
 
-  // 초기화 버튼
+  // 줄 초기화 버튼
   const resetBtn = document.createElement("button");
   resetBtn.type = "button";
   resetBtn.className = "danger smallBtn";
@@ -96,6 +98,8 @@ function buildRowUI(container, i) {
   targetsGrid.className = "targetsGrid";
 
   const targetSelects = [];
+  for (let k = 0; k < 5; k읊) {}
+
   for (let k = 0; k < 5; k++) {
     const sel = makeSelect(0);
     sel.id = `t${i}_${k}`;
@@ -113,15 +117,13 @@ function buildRowUI(container, i) {
   targetsField.appendChild(targetsGrid);
   wrap.appendChild(targetsField);
 
-  // ✅ 잠금 체크 시 처리:
-  // - 2~5번째 옵션을 자동으로 0으로 초기화
-  // - 2~5번째는 비활성
-  // - 첫번째는 계속 활성(잠금값으로 사용)
+  // ✅ 잠금 체크 규칙
+  // - 잠금 ON이면 2~5번째 옵션을 0으로 초기화 후 비활성화
+  // - 첫번째는 항상 활성
   const applyLockRule = () => {
     const isLocked = lock.checked;
 
     if (isLocked) {
-      // 2~5번째 옵션을 0으로 초기화
       for (let k = 1; k < 5; k++) {
         targetSelects[k].value = "0";
         updateSelectHighlight(targetSelects[k]);
@@ -131,27 +133,23 @@ function buildRowUI(container, i) {
     targetSelects[0].disabled = false;
     for (let k = 1; k < 5; k++) targetSelects[k].disabled = isLocked;
 
-    // 줄 강조 재계산
     updateRowHighlight(wrap, targetSelects);
   };
 
   lock.addEventListener("change", applyLockRule);
 
-  // 초기화 버튼 동작:
-  // - 잠금 해제
-  // - 5개 옵션 모두 0으로
-  // - 강조 제거
-  resetBtn.addEventListener("click", () => {
+  // ✅ 줄 초기화 동작
+  const resetRow = () => {
     lock.checked = false;
-
     for (const sel of targetSelects) {
       sel.value = "0";
-      updateSelectHighlight(sel);
       sel.disabled = false;
+      updateSelectHighlight(sel);
     }
-
     applyLockRule();
-  });
+  };
+
+  resetBtn.addEventListener("click", resetRow);
 
   // 초기 상태 반영
   applyLockRule();
@@ -159,12 +157,13 @@ function buildRowUI(container, i) {
   updateRowHighlight(wrap, targetSelects);
 
   container.appendChild(wrap);
-  return { lock, targetSelects, wrap };
+  return { lock, targetSelects, wrap, resetRow };
 }
 
 /* ===== UI 레퍼런스 ===== */
 const ui = {
   rows: [],
+  resetAllBtn: document.getElementById("resetAllBtn"),
   dupMode: document.getElementById("dupMode"),
   customMode: document.getElementById("customMode"),
   limits: [
@@ -175,7 +174,6 @@ const ui = {
   ],
   n: document.getElementById("n"),
   maxModule: document.getElementById("maxModule"),
-  seed: document.getElementById("seed"),
   runBtn: document.getElementById("runBtn"),
   stopBtn: document.getElementById("stopBtn"),
   statusText: document.getElementById("statusText"),
@@ -203,89 +201,7 @@ function clearError() {
   ui.errorBox.classList.add("hidden");
 }
 
-function readConfig() {
-  const locks = ui.rows.map((r) => r.lock.checked);
-  const targets = ui.rows.map((r) => r.targetSelects.map((s) => Number(s.value)));
-
-  // 잠금값은 "첫번째 목표 옵션"을 사용
-  const lockValues = targets.map((arr5, i) => (locks[i] ? (arr5[0] | 0) : 0));
-
-  const n = Math.max(1, Number(ui.n.value || 1));
-  const maxModule = Math.max(1, Number(ui.maxModule.value || 2000));
-
-  const seedRaw = ui.seed.value.trim();
-  const seed = seedRaw === "" ? null : Number(seedRaw);
-
-  return {
-    locks,
-    lockValues,
-    targets,
-    limits: ui.limits.map((x) => x.checked),
-    dupMode: ui.dupMode.checked,
-    customMode: ui.customMode.checked,
-    n,
-    maxModule,
-    seed,
-  };
-}
-
-/* ===== 히스토그램 ===== */
-function drawHistogram(canvas, hist) {
-  const ctx = canvas.getContext("2d");
-  const W = canvas.width,
-    H = canvas.height;
-  ctx.clearRect(0, 0, W, H);
-
-  let maxX = 0;
-  let maxY = 0;
-  for (let i = 0; i < hist.length; i++) {
-    const v = hist[i];
-    if (v > 0) maxX = i;
-    if (v > maxY) maxY = v;
-  }
-  if (maxY === 0) {
-    ctx.fillStyle = "rgba(233,238,247,.85)";
-    ctx.font = "12px system-ui";
-    ctx.fillText("데이터 없음", 20, 30);
-    return;
-  }
-
-  const padL = 46,
-    padR = 14,
-    padT = 14,
-    padB = 30;
-  const plotW = W - padL - padR;
-  const plotH = H - padT - padB;
-
-  ctx.strokeStyle = "rgba(154,167,189,.6)";
-  ctx.lineWidth = 1;
-  ctx.beginPath();
-  ctx.moveTo(padL, padT);
-  ctx.lineTo(padL, padT + plotH);
-  ctx.lineTo(padL + plotW, padT + plotH);
-  ctx.stroke();
-
-  const bins = Math.max(1, maxX + 1);
-  const barW = plotW / bins;
-
-  ctx.fillStyle = "rgba(90,166,255,.75)";
-  for (let x = 0; x <= maxX; x++) {
-    const count = hist[x];
-    if (!count) continue;
-    const h = (count / maxY) * plotH;
-    const px = padL + x * barW;
-    const py = padT + plotH - h;
-    ctx.fillRect(px, py, Math.max(1, barW), h);
-  }
-
-  ctx.fillStyle = "rgba(233,238,247,.85)";
-  ctx.font = "12px system-ui";
-  ctx.fillText(`0`, padL - 18, padT + plotH + 12);
-  ctx.fillText(`${maxX}`, padL + plotW - 26, padT + plotH + 12);
-  ctx.fillText(`${maxY}`, 6, padT + 12);
-}
-
-/* ===== 성공 예시 렌더 ===== */
+/* ===== 결과/예시 렌더 ===== */
 function optionLabel(v) {
   const found = OPTION_ITEMS.find((x) => x.v === v);
   return found ? found.label : String(v);
@@ -347,6 +263,81 @@ function renderExamples(examples) {
   });
 }
 
+function readConfig() {
+  const locks = ui.rows.map((r) => r.lock.checked);
+  const targets = ui.rows.map((r) => r.targetSelects.map((s) => Number(s.value)));
+
+  // 잠금값은 "첫번째 목표 옵션"을 사용
+  const lockValues = targets.map((arr5, i) => (locks[i] ? (arr5[0] | 0) : 0));
+
+  const n = Math.max(1, Number(ui.n.value || 1));
+  const maxModule = Math.max(1, Number(ui.maxModule.value || 2000));
+
+  return {
+    locks,
+    lockValues,
+    targets,
+    limits: ui.limits.map((x) => x.checked),
+    dupMode: ui.dupMode.checked,
+    customMode: ui.customMode.checked,
+    n,
+    maxModule,
+    // ✅ seed를 보내지 않음(Worker는 seed==null/undefined면 항상 랜덤)
+  };
+}
+
+/* ===== 히스토그램 ===== */
+function drawHistogram(canvas, hist) {
+  const ctx = canvas.getContext("2d");
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
+
+  let maxX = 0;
+  let maxY = 0;
+  for (let i = 0; i < hist.length; i++) {
+    const v = hist[i];
+    if (v > 0) maxX = i;
+    if (v > maxY) maxY = v;
+  }
+  if (maxY === 0) {
+    ctx.fillStyle = "rgba(233,238,247,.85)";
+    ctx.font = "12px system-ui";
+    ctx.fillText("데이터 없음", 20, 30);
+    return;
+  }
+
+  const padL = 46, padR = 14, padT = 14, padB = 30;
+  const plotW = W - padL - padR;
+  const plotH = H - padT - padB;
+
+  ctx.strokeStyle = "rgba(154,167,189,.6)";
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(padL, padT);
+  ctx.lineTo(padL, padT + plotH);
+  ctx.lineTo(padL + plotW, padT + plotH);
+  ctx.stroke();
+
+  const bins = Math.max(1, maxX + 1);
+  const barW = plotW / bins;
+
+  ctx.fillStyle = "rgba(90,166,255,.75)";
+  for (let x = 0; x <= maxX; x++) {
+    const count = hist[x];
+    if (!count) continue;
+    const h = (count / maxY) * plotH;
+    const px = padL + x * barW;
+    const py = padT + plotH - h;
+    ctx.fillRect(px, py, Math.max(1, barW), h);
+  }
+
+  ctx.fillStyle = "rgba(233,238,247,.85)";
+  ctx.font = "12px system-ui";
+  ctx.fillText(`0`, padL - 18, padT + plotH + 12);
+  ctx.fillText(`${maxX}`, padL + plotW - 26, padT + plotH + 12);
+  ctx.fillText(`${maxY}`, 6, padT + 12);
+}
+
 /* ===== Worker 연결 ===== */
 let worker = null;
 
@@ -361,13 +352,18 @@ function setStatus(text, pct = null) {
   ui.progress.value = Math.max(0, Math.min(100, pct));
 }
 
+function stopWorkerIfAny() {
+  if (worker) worker.terminate();
+  worker = null;
+  setRunning(false);
+}
+
 ui.runBtn.addEventListener("click", () => {
   clearError();
-
   const config = readConfig();
 
-  if (worker) worker.terminate();
-  // ✅ 너가 설정한 버전 파라미터 유지
+  stopWorkerIfAny();
+  // ✅ 너가 이미 적용한 캐시 무시 파라미터 유지
   worker = new Worker("./sim.worker.js?v=fix2");
 
   setRunning(true);
@@ -416,8 +412,32 @@ ui.runBtn.addEventListener("click", () => {
 });
 
 ui.stopBtn.addEventListener("click", () => {
-  if (worker) worker.terminate();
-  worker = null;
-  setRunning(false);
+  stopWorkerIfAny();
   setStatus("사용자 중지", 0);
+});
+
+/* ===== ✅ 전체 초기화 버튼 ===== */
+ui.resetAllBtn?.addEventListener("click", () => {
+  // 실행 중이면 중지
+  stopWorkerIfAny();
+
+  // 줄 전체 초기화
+  ui.rows.forEach(r => r.resetRow());
+
+  // 상단 토글 초기화
+  ui.dupMode.checked = false;
+  ui.customMode.checked = false;
+  ui.limits.forEach(l => (l.checked = false));
+
+  // 상태/출력 초기화
+  clearError();
+  ui.avgModule.textContent = "-";
+  ui.avgReroll.textContent = "-";
+  ui.avgCustom.textContent = "-";
+  renderExamples([]);
+  setStatus("대기 중", 0);
+
+  // 캔버스 비우기
+  const ctx = ui.canvas.getContext("2d");
+  ctx.clearRect(0, 0, ui.canvas.width, ui.canvas.height);
 });
