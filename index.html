@@ -17,7 +17,11 @@
 
   <main class="container grid">
     <section class="card">
-      <h2>입력</h2>
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
+        <h2 style="margin:8px 0 12px;">입력</h2>
+        <button id="resetAllBtn" class="danger">전체 초기화</button>
+      </div>
+
 
       <div id="rows"></div>
 
@@ -52,10 +56,6 @@
         <label class="field">
           <span>모듈 상한(안전장치)</span>
           <input type="number" id="maxModule" min="1" step="1" value="2000" />
-        </label>
-        <label class="field">
-          <span>난수 시드(선택)</span>
-          <input type="number" id="seed" step="1" placeholder="비우면 랜덤" />
         </label>
       </div>
 
