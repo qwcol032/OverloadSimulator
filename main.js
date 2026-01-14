@@ -1,23 +1,15 @@
-/* main.js
-   - 줄 초기화 버튼
-   - 0이 아닌 옵션 강조
-   - 잠금 체크 시 2~5번째 옵션 자동 0 초기화
-   - ✅ 난수 시드 입력 제거(항상 랜덤)
-   - ✅ 전체 초기화 버튼 추가(줄/잠금/dup/custom/limits 모두 초기화)
-   - 성공 예시 5개 렌더
-*/
 
 const OPTION_ITEMS = [
-  { v: 0, label: "효과 없음 (0)" },
-  { v: 1, label: "우월코드 데미지 증가 (1)" },
-  { v: 2, label: "명중률 증가 (2)" },
-  { v: 3, label: "최대 장탄 수 증가 (3)" },
-  { v: 4, label: "공격력 증가 (4)" },
-  { v: 5, label: "차지 데미지 증가 (5)" },
-  { v: 6, label: "차지 속도 증가 (6)" },
-  { v: 7, label: "크리티컬 피해량 증가 (7)" },
-  { v: 8, label: "크리티컬 확률 증가 (8)" },
-  { v: 9, label: "방어력 증가 (9)" },
+  { v: 0, label: "효과 없음" },
+  { v: 1, label: "우월코드 데미지 증가" },
+  { v: 2, label: "명중률 증가" },
+  { v: 3, label: "최대 장탄 수 증가" },
+  { v: 4, label: "공격력 증가" },
+  { v: 5, label: "차지 데미지 증가" },
+  { v: 6, label: "차지 속도 증가" },
+  { v: 7, label: "크리티컬 피해량 증가" },
+  { v: 8, label: "크리티컬 확률 증가" },
+  { v: 9, label: "방어력 증가" },
 ];
 
 function makeSelect(defaultValue = 0) {
@@ -63,7 +55,7 @@ function buildRowUI(container, i) {
   header.style.alignItems = "center";
 
   const title = document.createElement("div");
-  title.innerHTML = `<b>${rowTitle(i)}</b> <span class="muted small">(목표옵션 5개 / 초기잠금 시 첫번째 옵션 고정)</span>`;
+  title.innerHTML = `<b>${rowTitle(i)}</b>`;
   header.appendChild(title);
 
   const lockLabel = document.createElement("label");
@@ -72,7 +64,7 @@ function buildRowUI(container, i) {
   lock.type = "checkbox";
   lock.id = `lock${i}`;
   const lockText = document.createElement("span");
-  lockText.textContent = "초기 잠금";
+  lockText.textContent = "잠금";
   lockLabel.appendChild(lock);
   lockLabel.appendChild(lockText);
   header.appendChild(lockLabel);
@@ -89,10 +81,6 @@ function buildRowUI(container, i) {
   // 목표 옵션 5개
   const targetsField = document.createElement("div");
   targetsField.className = "field";
-  const targetsTitle = document.createElement("span");
-  targetsTitle.textContent =
-    "목표 옵션 (5개)  —  ※ 초기잠금 체크 시: 첫번째 옵션을 잠금값(현재값)으로 사용";
-  targetsField.appendChild(targetsTitle);
 
   const targetsGrid = document.createElement("div");
   targetsGrid.className = "targetsGrid";
