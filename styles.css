@@ -106,3 +106,15 @@ progress::-webkit-progress-value { background: var(--primary); }
   border-radius: 12px;
   background: #0f1520;
 }
+
+/* 목표 옵션 5칸: 너무 좁아지지 않게 자동 줄바꿈 */
+.targetsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 8px;
+}
+
+/* 셀렉트 높이/가독성 조금 업 */
+select {
+  min-height: 42px;
+}
