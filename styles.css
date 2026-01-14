@@ -175,3 +175,22 @@ select {
 .exRow .v {
   font-weight: 800;
 }
+
+/* 선택된 옵션(0이 아닌 값) 강조 */
+select.optSelected {
+  border-color: rgba(90, 166, 255, 0.65);
+  background: rgba(90, 166, 255, 0.10);
+}
+
+/* 해당 줄에 하나라도 선택(0이 아닌 값)이 있으면 카드 강조 */
+.rowHasSelection {
+  border-color: rgba(90, 166, 255, 0.55);
+  box-shadow: 0 6px 28px rgba(90, 166, 255, 0.10);
+}
+
+/* 줄 초기화 버튼 조금 작게 */
+.smallBtn {
+  padding: 8px 10px;
+  font-size: 12px;
+  font-weight: 800;
+}
