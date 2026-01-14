@@ -343,7 +343,8 @@ ui.runBtn.addEventListener("click", () => {
   const config = readConfig();
 
   if (worker) worker.terminate();
-  worker = new Worker("./sim.worker.js");
+  worker = new Worker("./sim.worker.js?v=fix2");
+
 
   setRunning(true);
   setStatus("시뮬 준비 중...", 0);
