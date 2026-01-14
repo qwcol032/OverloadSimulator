@@ -3,15 +3,14 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>3줄 리롤 시뮬레이터 (Worker)</title>
+  <title>니케 오버로드 시뮬레이터</title>
   <link rel="stylesheet" href="./styles.css" />
 </head>
 <body>
   <header class="container">
-    <h1>3줄 리롤 시뮬레이터</h1>
+    <h1>니케 오버로드 시뮬레이터</h1>
     <p class="muted">
-      - 메인 스레드 프리징 방지를 위해 WebWorker로 계산합니다.<br/>
-      - 옵션 값은 A(1)~I(9), 비움(0) 입니다.
+      <a href="https://gall.dcinside.com/mgallery/board/lists/?id=gov" target="_blank">작동문의 : 니케 마이너 갤러리 (https://gall.dcinside.com/mgallery/board/lists/?id=gov)</a>
     </p>
   </header>
 
@@ -30,31 +29,31 @@
       <div class="row2">
         <label class="check">
           <input type="checkbox" id="dupMode" />
-          <span><b>Dup_option</b> (줄 무시 매칭): 각 줄 요구옵션은 “어느 줄에 뜨든” 1번만 떠도 만족</span>
+          <span>중복옵션허용(ex공공공)</span>
         </label>
 
         <label class="check">
           <input type="checkbox" id="customMode" />
-          <span><b>커스텀락키 사용</b> (잠금 1개: 20 / 2개: 50, 리롤마다 소모)</span>
+          <span>커스텀락키 사용</span>
         </label>
       </div>
 
-      <h3>자동 잠금(limits)</h3>
+      <h3>잠금 규칙</h3>
       <div class="row2">
-        <label class="check"><input type="checkbox" id="limit0" /> <span>1줄: 좋은 옵션 뜨면 자동 잠금</span></label>
-        <label class="check"><input type="checkbox" id="limit1" /> <span>2줄: 좋은 옵션 뜨면 자동 잠금</span></label>
-        <label class="check"><input type="checkbox" id="limit2" /> <span>3줄: 좋은 옵션 뜨면 자동 잠금</span></label>
-        <label class="check"><input type="checkbox" id="limit3" /> <span>2-3 연동: 3줄 잠금 후 2줄도 조건되면 잠금</span></label>
+        <label class="check"><input type="checkbox" id="limit0" /> <span>시뮬중 첫째줄이 유효옵이면 잠금</span></label>
+        <label class="check"><input type="checkbox" id="limit1" /> <span>시뮬중 둘째줄이 유효옵이면 잠금</span></label>
+        <label class="check"><input type="checkbox" id="limit2" /> <span>시뮬중 셋째줄이 유효옵이면 잠금</span></label>
+        <label class="check"><input type="checkbox" id="limit3" /> <span>시뮬중 하단줄부터 잠금</span></label>
       </div>
 
       <h3>시뮬 설정</h3>
       <div class="row2">
         <label class="field">
-          <span>시뮬 횟수(n)</span>
+          <span>시뮬 횟수</span>
           <input type="number" id="n" min="1" step="1" value="10000" />
         </label>
         <label class="field">
-          <span>모듈 상한(안전장치)</span>
+          <span>모듈 상한</span>
           <input type="number" id="maxModule" min="1" step="1" value="2000" />
         </label>
       </div>
@@ -93,9 +92,6 @@
       <canvas id="histCanvas" width="900" height="360"></canvas>
       <h3>성공 예시 (최대 5개)</h3>
       <div id="examples" class="examples"></div>
-      <div class="muted small">
-        막대가 너무 많으면 확대(브라우저 줌)해서 보세요.
-      </div>
     </section>
   </main>
 
