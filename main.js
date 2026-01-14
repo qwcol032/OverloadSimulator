@@ -114,6 +114,7 @@ const ui = {
   avgReroll: document.getElementById("avgReroll"),
   avgCustom: document.getElementById("avgCustom"),
   canvas: document.getElementById("histCanvas"),
+  examplesBox: document.getElementById("examples"),
 };
 
 (function initUI() {
