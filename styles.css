@@ -87,10 +87,19 @@ hr { border: none; border-top: 1px solid var(--border); margin: 14px 0; }
 
 .levelSelect.levelLow {
   color: #000;
+  background: #fff;
+  color-scheme: light;
 }
 
 .levelSelect.levelHigh {
   color: #5aa6ff;
+}
+
+.levelSelect.levelMax {
+  color: #fff;
+  background: #000;
+  color-scheme: dark;
+  border-color: #000;
 }
 
 .field {
