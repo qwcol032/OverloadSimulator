@@ -1,5 +1,4 @@
 const OPTION_LABELS = [
-  "효과 없음",
   "우월코드 데미지 증가",
   "명중률 증가",
   "최대 장탄 수 증가",
@@ -33,9 +32,15 @@ const LEVEL_TABLE_BY_OPTION = {
 };
 
 function populateOptionSelect(selectEl) {
+  const placeholder = document.createElement("option");
+  placeholder.value = "-1";
+  placeholder.textContent = "옵션 선택";
+  placeholder.selected = true;
+  selectEl.appendChild(placeholder);
+
   OPTION_LABELS.forEach((label, idx) => {
     const opt = document.createElement("option");
-    opt.value = String(idx);
+    opt.value = String(idx + 1);
     opt.textContent = label;
     selectEl.appendChild(opt);
   });
@@ -45,7 +50,7 @@ function populateLevelSelect(selectEl, levelLabels = []) {
   selectEl.innerHTML = "";
   const none = document.createElement("option");
   none.value = "0";
-  none.textContent = "선택 안 함";
+  none.textContent = "레벨 선택";
   selectEl.appendChild(none);
 
   levelLabels.forEach((label, index) => {
@@ -105,15 +110,38 @@ simB.levels.forEach((sel) => {
   updateLevelColor(sel);
 });
 
+function updateOptionAvailability() {
+  const selected = new Set(
+    simB.options
+      .map((sel) => Number(sel.value))
+      .filter((value) => value > 0)
+  );
+
+  simB.options.forEach((sel) => {
+    const currentValue = Number(sel.value);
+    Array.from(sel.options).forEach((opt) => {
+      const optValue = Number(opt.value);
+      if (optValue <= 0) {
+        opt.disabled = false;
+        return;
+      }
+      opt.disabled = optValue !== currentValue && selected.has(optValue);
+    });
+  });
+}
+
+updateOptionAvailability();
+
 simB.options.forEach((optionSel, index) => {
   const levelSel = simB.levels[index];
   optionSel.addEventListener("change", () => {
     const optionValue = Number(optionSel.value);
-    const table = LEVEL_TABLE_BY_OPTION[optionValue] || [];
+    const table = optionValue > 0 ? (LEVEL_TABLE_BY_OPTION[optionValue] || []) : [];
     populateLevelSelect(levelSel, table);
-    levelSel.disabled = optionValue === 0;
+    levelSel.disabled = optionValue <= 0;
     levelSel.value = "0";
     updateLevelColor(levelSel);
+    updateOptionAvailability();
   });
 });
 
@@ -275,8 +303,9 @@ simB.resetBtn?.addEventListener("click", () => {
     updateLevelColor(sel);
   });
   simB.options.forEach((sel) => {
-    sel.value = "0";
+    sel.value = "-1";
   });
+  updateOptionAvailability();
   simB.locks.forEach((lock) => {
     lock.checked = false;
   });

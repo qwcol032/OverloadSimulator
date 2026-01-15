@@ -41,6 +41,26 @@ function updateRowHighlight(rowEl, selects) {
   else rowEl.classList.remove("rowHasSelection");
 }
 
+function updateRowOptionAvailability(selects) {
+  selects.forEach((sel) => {
+    const otherSelected = new Set(
+      selects
+        .filter((other) => other !== sel)
+        .map((other) => Number(other.value))
+        .filter((value) => value !== 0)
+    );
+
+    Array.from(sel.options).forEach((opt) => {
+      const optValue = Number(opt.value);
+      if (optValue === 0) {
+        opt.disabled = false;
+        return;
+      }
+      opt.disabled = optValue !== Number(sel.value) && otherSelected.has(optValue);
+    });
+  });
+}
+
 /* ===== Row UI 생성 ===== */
 function buildRowUI(container, i) {
   const wrap = document.createElement("div");
@@ -94,6 +114,7 @@ function buildRowUI(container, i) {
     // 값 바뀔 때마다 강조 업데이트
     sel.addEventListener("change", () => {
       updateSelectHighlight(sel);
+      updateRowOptionAvailability(targetSelects);
       updateRowHighlight(wrap, targetSelects);
     });
 
@@ -120,6 +141,7 @@ function buildRowUI(container, i) {
     targetSelects[0].disabled = false;
     for (let k = 1; k < 5; k++) targetSelects[k].disabled = isLocked;
 
+    updateRowOptionAvailability(targetSelects);
     updateRowHighlight(wrap, targetSelects);
   };
 
@@ -134,6 +156,7 @@ function buildRowUI(container, i) {
       updateSelectHighlight(sel);
     }
     applyLockRule();
+    updateRowOptionAvailability(targetSelects);
   };
 
   resetBtn.addEventListener("click", resetRow);
@@ -141,6 +164,7 @@ function buildRowUI(container, i) {
   // 초기 상태 반영
   applyLockRule();
   for (const sel of targetSelects) updateSelectHighlight(sel);
+  updateRowOptionAvailability(targetSelects);
   updateRowHighlight(wrap, targetSelects);
 
   container.appendChild(wrap);
