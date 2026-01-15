@@ -1,15 +1,74 @@
-const LEVEL_OPTIONS = Array.from({ length: 15 }, (_, i) => i);
+const OPTION_LABELS = [
+  "효과 없음",
+  "우월코드 데미지 증가",
+  "명중률 증가",
+  "최대 장탄 수 증가",
+  "공격력 증가",
+  "차지 데미지 증가",
+  "차지 속도 증가",
+  "크리티컬 피해량 증가",
+  "크리티컬 확률 증가",
+  "방어력 증가",
+];
 
-function populateLevelSelect(selectEl) {
-  LEVEL_OPTIONS.forEach((level) => {
+const LEVEL_VALUES = {
+  arr1: ["[1] 9.54","[2] 10.94","[3] 12.34","[4] 13.75","[5] 15.15","[6] 16.55","[7] 17.95","[8] 19.35","[9] 20.75","[10] 22.15","[11] 23.56","[12] 24.96","[13] 26.36","[14] 27.76","[15] 29.16"],
+  arr2: ["[1] 4.77","[2] 5.47","[3] 6.18","[4] 6.88","[5] 7.59","[6] 8.29","[7] 9.00","[8] 9.70","[9] 10.40","[10] 11.11","[11] 11.81","[12] 12.52","[13] 13.22","[14] 13.93","[15] 14.63"],
+  arr3: ["[1] 27.84","[2] 31.95","[3] 36.06","[4] 40.17","[5] 44.28","[6] 48.39","[7] 52.50","[8] 56.60","[9] 60.71","[10] 64.82","[11] 68.93","[12] 73.04","[13] 77.15","[14] 81.26","[15] 82.37"],
+  arr4: ["[1] 1.98","[2] 2.28","[3] 2.57","[4] 2.86","[5] 3.16","[6] 3.45","[7] 3.75","[8] 4.04","[9] 4.33","[10] 4.63","[11] 4.92","[12] 5.21","[13] 5.51","[14] 5.80","[15] 6.09"],
+  arr5: ["[1] 6.64","[2] 7.62","[3] 8.60","[4] 9.58","[5] 10.56","[6] 11.54","[7] 12.52","[8] 13.50","[9] 14.48","[10] 15.46","[11] 16.44","[12] 17.42","[13] 18.40","[14] 19.38","[15] 20.36"],
+  arr6: ["[1] 2.30","[2] 2.64","[3] 2.98","[4] 3.32","[5] 3.66","[6] 4.00","[7] 4.35","[8] 4.69","[9] 5.03","[10] 5.37","[11] 5.70","[12] 6.05","[13] 6.39","[14] 6.73","[15] 7.07"],
+};
+
+const LEVEL_TABLE_BY_OPTION = {
+  1: LEVEL_VALUES.arr1,
+  2: LEVEL_VALUES.arr2,
+  3: LEVEL_VALUES.arr3,
+  4: LEVEL_VALUES.arr2,
+  5: LEVEL_VALUES.arr2,
+  6: LEVEL_VALUES.arr4,
+  7: LEVEL_VALUES.arr5,
+  8: LEVEL_VALUES.arr6,
+  9: LEVEL_VALUES.arr2,
+};
+
+function populateOptionSelect(selectEl) {
+  OPTION_LABELS.forEach((label, idx) => {
     const opt = document.createElement("option");
-    opt.value = String(level);
-    opt.textContent = String(level);
+    opt.value = String(idx);
+    opt.textContent = label;
     selectEl.appendChild(opt);
   });
 }
 
+function populateLevelSelect(selectEl, levelLabels = []) {
+  selectEl.innerHTML = "";
+  const none = document.createElement("option");
+  none.value = "0";
+  none.textContent = "선택 안 함";
+  selectEl.appendChild(none);
+
+  levelLabels.forEach((label, index) => {
+    const opt = document.createElement("option");
+    opt.value = String(index + 1);
+    opt.textContent = label;
+    selectEl.appendChild(opt);
+  });
+}
+
+function updateLevelColor(selectEl) {
+  const value = Number(selectEl.value);
+  selectEl.classList.remove("levelLow", "levelHigh");
+  if (value >= 12) selectEl.classList.add("levelHigh");
+  else if (value >= 1) selectEl.classList.add("levelLow");
+}
+
 const simB = {
+  options: [
+    document.getElementById("bOption0"),
+    document.getElementById("bOption1"),
+    document.getElementById("bOption2"),
+  ],
   levels: [
     document.getElementById("bLevel0"),
     document.getElementById("bLevel1"),
@@ -24,7 +83,6 @@ const simB = {
     document.getElementById("bLimit0"),
     document.getElementById("bLimit1"),
     document.getElementById("bLimit2"),
-    document.getElementById("bLimit3"),
   ],
   customMode: document.getElementById("bCustomMode"),
   n: document.getElementById("bN"),
@@ -41,7 +99,27 @@ const simB = {
   canvas: document.getElementById("bHistCanvas"),
 };
 
-simB.levels.forEach((sel) => populateLevelSelect(sel));
+simB.options.forEach((sel) => populateOptionSelect(sel));
+simB.levels.forEach((sel) => {
+  populateLevelSelect(sel, []);
+  updateLevelColor(sel);
+});
+
+simB.options.forEach((optionSel, index) => {
+  const levelSel = simB.levels[index];
+  optionSel.addEventListener("change", () => {
+    const optionValue = Number(optionSel.value);
+    const table = LEVEL_TABLE_BY_OPTION[optionValue] || [];
+    populateLevelSelect(levelSel, table);
+    levelSel.disabled = optionValue === 0;
+    levelSel.value = "0";
+    updateLevelColor(levelSel);
+  });
+});
+
+simB.levels.forEach((levelSel) => {
+  levelSel.addEventListener("change", () => updateLevelColor(levelSel));
+});
 
 function drawHistogramB(canvas, hist) {
   const ctx = canvas.getContext("2d");
@@ -191,6 +269,12 @@ simB.resetBtn?.addEventListener("click", () => {
   stopWorkerB();
 
   simB.levels.forEach((sel) => {
+    sel.value = "0";
+    sel.disabled = true;
+    populateLevelSelect(sel, []);
+    updateLevelColor(sel);
+  });
+  simB.options.forEach((sel) => {
     sel.value = "0";
   });
   simB.locks.forEach((lock) => {
