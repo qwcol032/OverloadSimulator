@@ -1,5 +1,4 @@
 const OPTION_LABELS = [
-  "효과 없음",
   "우월코드 데미지 증가",
   "명중률 증가",
   "최대 장탄 수 증가",
@@ -41,7 +40,7 @@ function populateOptionSelect(selectEl) {
 
   OPTION_LABELS.forEach((label, idx) => {
     const opt = document.createElement("option");
-    opt.value = String(idx);
+    opt.value = String(idx + 1);
     opt.textContent = label;
     selectEl.appendChild(opt);
   });
@@ -111,6 +110,28 @@ simB.levels.forEach((sel) => {
   updateLevelColor(sel);
 });
 
+function updateOptionAvailability() {
+  const selected = new Set(
+    simB.options
+      .map((sel) => Number(sel.value))
+      .filter((value) => value > 0)
+  );
+
+  simB.options.forEach((sel) => {
+    const currentValue = Number(sel.value);
+    Array.from(sel.options).forEach((opt) => {
+      const optValue = Number(opt.value);
+      if (optValue <= 0) {
+        opt.disabled = false;
+        return;
+      }
+      opt.disabled = optValue !== currentValue && selected.has(optValue);
+    });
+  });
+}
+
+updateOptionAvailability();
+
 simB.options.forEach((optionSel, index) => {
   const levelSel = simB.levels[index];
   optionSel.addEventListener("change", () => {
@@ -120,6 +141,7 @@ simB.options.forEach((optionSel, index) => {
     levelSel.disabled = optionValue <= 0;
     levelSel.value = "0";
     updateLevelColor(levelSel);
+    updateOptionAvailability();
   });
 });
 
@@ -283,6 +305,7 @@ simB.resetBtn?.addEventListener("click", () => {
   simB.options.forEach((sel) => {
     sel.value = "-1";
   });
+  updateOptionAvailability();
   simB.locks.forEach((lock) => {
     lock.checked = false;
   });
