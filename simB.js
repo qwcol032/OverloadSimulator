@@ -63,9 +63,14 @@ function populateLevelSelect(selectEl, levelLabels = []) {
 
 function updateLevelColor(selectEl) {
   const value = Number(selectEl.value);
-  selectEl.classList.remove("levelLow", "levelHigh");
-  if (value >= 12) selectEl.classList.add("levelHigh");
-  else if (value >= 1) selectEl.classList.add("levelLow");
+  selectEl.classList.remove("levelLow", "levelHigh", "levelMax");
+  if (value === 15) {
+    selectEl.classList.add("levelMax");
+  } else if (value >= 12) {
+    selectEl.classList.add("levelHigh");
+  } else if (value >= 1) {
+    selectEl.classList.add("levelLow");
+  }
 }
 
 const simB = {
