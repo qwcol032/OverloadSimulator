@@ -96,7 +96,7 @@ hr { border: none; border-top: 1px solid var(--border); margin: 14px 0; }
 }
 
 .levelSelect.levelMax {
-  color: #fff;
+  color: #5aa6ff;
   background: #000;
   color-scheme: dark;
   border-color: #000;
