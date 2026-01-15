@@ -29,21 +29,21 @@ function makeRng(seed) {
 }
 
 function sampleLevel(r100) {
-  if (r100 < 12) return 0;
-  if (r100 < 24) return 1;
-  if (r100 < 36) return 2;
-  if (r100 < 48) return 3;
-  if (r100 < 60) return 4;
-  if (r100 < 67) return 5;
-  if (r100 < 74) return 6;
-  if (r100 < 81) return 7;
-  if (r100 < 88) return 8;
-  if (r100 < 95) return 9;
-  if (r100 < 96) return 10;
-  if (r100 < 97) return 11;
-  if (r100 < 98) return 12;
-  if (r100 < 99) return 13;
-  return 14;
+  if (r100 < 12) return 1;
+  if (r100 < 24) return 2;
+  if (r100 < 36) return 3;
+  if (r100 < 48) return 4;
+  if (r100 < 60) return 5;
+  if (r100 < 67) return 6;
+  if (r100 < 74) return 7;
+  if (r100 < 81) return 8;
+  if (r100 < 88) return 9;
+  if (r100 < 95) return 10;
+  if (r100 < 96) return 11;
+  if (r100 < 97) return 12;
+  if (r100 < 98) return 13;
+  if (r100 < 99) return 14;
+  return 15;
 }
 
 function countLocks(locks) {

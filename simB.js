@@ -33,6 +33,12 @@ const LEVEL_TABLE_BY_OPTION = {
 };
 
 function populateOptionSelect(selectEl) {
+  const placeholder = document.createElement("option");
+  placeholder.value = "-1";
+  placeholder.textContent = "옵션 선택";
+  placeholder.selected = true;
+  selectEl.appendChild(placeholder);
+
   OPTION_LABELS.forEach((label, idx) => {
     const opt = document.createElement("option");
     opt.value = String(idx);
@@ -45,7 +51,7 @@ function populateLevelSelect(selectEl, levelLabels = []) {
   selectEl.innerHTML = "";
   const none = document.createElement("option");
   none.value = "0";
-  none.textContent = "선택 안 함";
+  none.textContent = "레벨 선택";
   selectEl.appendChild(none);
 
   levelLabels.forEach((label, index) => {
@@ -109,9 +115,9 @@ simB.options.forEach((optionSel, index) => {
   const levelSel = simB.levels[index];
   optionSel.addEventListener("change", () => {
     const optionValue = Number(optionSel.value);
-    const table = LEVEL_TABLE_BY_OPTION[optionValue] || [];
+    const table = optionValue > 0 ? (LEVEL_TABLE_BY_OPTION[optionValue] || []) : [];
     populateLevelSelect(levelSel, table);
-    levelSel.disabled = optionValue === 0;
+    levelSel.disabled = optionValue <= 0;
     levelSel.value = "0";
     updateLevelColor(levelSel);
   });
@@ -275,7 +281,7 @@ simB.resetBtn?.addEventListener("click", () => {
     updateLevelColor(sel);
   });
   simB.options.forEach((sel) => {
-    sel.value = "0";
+    sel.value = "-1";
   });
   simB.locks.forEach((lock) => {
     lock.checked = false;
