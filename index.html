@@ -14,7 +14,12 @@
     </p>
   </header>
 
-  <main class="container grid">
+  <div class="container tabBar">
+    <button class="tabBtn active" data-target="simA">시뮬레이션 A</button>
+    <button class="tabBtn" data-target="simB">시뮬레이션 B</button>
+  </div>
+
+  <main id="simA" class="container grid simSection">
     <section class="card">
       <div style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
         <h2 style="margin:8px 0 12px;">입력</h2>
@@ -95,7 +100,114 @@
     </section>
   </main>
 
-  <script src="./main.js?v=fix2"></script>
+  <main id="simB" class="container grid simSection hidden">
+    <section class="card">
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
+        <h2 style="margin:8px 0 12px;">시뮬레이션 B 입력</h2>
+        <button id="resetAllBtnB" class="danger">전체 초기화</button>
+      </div>
+
+      <div class="levelRows">
+        <div class="levelRow">
+          <label class="field">
+            <span>1줄 옵션</span>
+            <select id="bOption0"></select>
+          </label>
+          <label class="field">
+            <span>1줄 목표 레벨</span>
+            <select id="bLevel0" class="levelSelect" disabled></select>
+          </label>
+          <label class="check"><input type="checkbox" id="bLock0" /> <span>잠금</span></label>
+        </div>
+        <div class="levelRow">
+          <label class="field">
+            <span>2줄 옵션</span>
+            <select id="bOption1"></select>
+          </label>
+          <label class="field">
+            <span>2줄 목표 레벨</span>
+            <select id="bLevel1" class="levelSelect" disabled></select>
+          </label>
+          <label class="check"><input type="checkbox" id="bLock1" /> <span>잠금</span></label>
+        </div>
+        <div class="levelRow">
+          <label class="field">
+            <span>3줄 옵션</span>
+            <select id="bOption2"></select>
+          </label>
+          <label class="field">
+            <span>3줄 목표 레벨</span>
+            <select id="bLevel2" class="levelSelect" disabled></select>
+          </label>
+          <label class="check"><input type="checkbox" id="bLock2" /> <span>잠금</span></label>
+        </div>
+      </div>
+
+      <hr/>
+
+      <div class="row2">
+        <label class="check">
+          <input type="checkbox" id="bCustomMode" />
+          <span>커스텀락키 사용</span>
+        </label>
+      </div>
+
+      <h3>잠금 규칙</h3>
+      <div class="row2">
+        <label class="check"><input type="checkbox" id="bLimit0" /> <span>첫째줄이 목표 레벨 이상이면 잠금</span></label>
+        <label class="check"><input type="checkbox" id="bLimit1" /> <span>둘째줄이 목표 레벨 이상이면 잠금</span></label>
+        <label class="check"><input type="checkbox" id="bLimit2" /> <span>셋째줄이 목표 레벨 이상이면 잠금</span></label>
+      </div>
+
+      <h3>시뮬 설정</h3>
+      <div class="row2">
+        <label class="field">
+          <span>시뮬 횟수</span>
+          <input type="number" id="bN" min="1" step="1" value="10000" />
+        </label>
+        <label class="field">
+          <span>시뮬 1회당 모듈 상한</span>
+          <input type="number" id="bMaxModule" min="1" step="1" value="2000" />
+        </label>
+      </div>
+
+      <div class="row2">
+        <button id="bRunBtn" class="primary">시뮬 실행</button>
+        <button id="bStopBtn" class="danger" disabled>중지</button>
+      </div>
+
+      <div class="status">
+        <div class="muted" id="bStatusText">대기 중</div>
+        <progress id="bProgress" value="0" max="100"></progress>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>시뮬레이션 B 결과</h2>
+      <div id="bErrorBox" class="error hidden"></div>
+
+      <div class="stats">
+        <div class="stat">
+          <div class="label">평균 모듈</div>
+          <div class="value" id="bAvgModule">-</div>
+        </div>
+        <div class="stat">
+          <div class="label">평균 리롤 횟수</div>
+          <div class="value" id="bAvgReroll">-</div>
+        </div>
+        <div class="stat">
+          <div class="label">평균 커스텀키</div>
+          <div class="value" id="bAvgCustom">-</div>
+        </div>
+      </div>
+
+      <h3>분포(히스토그램)</h3>
+      <canvas id="bHistCanvas" width="900" height="360"></canvas>
+    </section>
+  </main>
+
+  <script src="./main.js?v=simA3"></script>
+  <script src="./simB.js?v=simB1"></script>
 
 </body>
 </html>

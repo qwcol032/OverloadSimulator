@@ -428,3 +428,34 @@ ui.resetAllBtn?.addEventListener("click", () => {
   const ctx = ui.canvas.getContext("2d");
   ctx.clearRect(0, 0, ui.canvas.width, ui.canvas.height);
 });
+
+/* ===== ✅ 시뮬레이션 탭 전환 ===== */
+const simSections = {
+  simA: document.getElementById("simA"),
+  simB: document.getElementById("simB"),
+};
+
+function setActiveSim(targetId) {
+  Object.entries(simSections).forEach(([id, el]) => {
+    if (!el) return;
+    if (id === targetId) el.classList.remove("hidden");
+    else el.classList.add("hidden");
+  });
+
+  document.querySelectorAll(".tabBtn").forEach((btn) => {
+    btn.classList.toggle("active", btn.dataset.target === targetId);
+  });
+
+  if (targetId !== "simA") {
+    stopWorkerIfAny();
+    setStatus("대기 중", 0);
+  }
+
+  document.dispatchEvent(new CustomEvent("sim:change", { detail: targetId }));
+}
+
+document.querySelectorAll(".tabBtn").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    setActiveSim(btn.dataset.target);
+  });
+});
