@@ -73,9 +73,25 @@ hr { border: none; border-top: 1px solid var(--border); margin: 14px 0; }
 
 .levelRow {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) auto;
   gap: 12px;
   align-items: end;
+}
+
+.strategyOptions {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.strategyOption {
+  display: grid;
+  gap: 6px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #0f1520;
+  cursor: pointer;
 }
 
 @media (max-width: 560px) {

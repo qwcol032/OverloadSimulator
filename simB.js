@@ -79,7 +79,12 @@ const simB = {
     document.getElementById("bOption1"),
     document.getElementById("bOption2"),
   ],
-  levels: [
+  currentLevels: [
+    document.getElementById("bCurrentLevel0"),
+    document.getElementById("bCurrentLevel1"),
+    document.getElementById("bCurrentLevel2"),
+  ],
+  targetLevels: [
     document.getElementById("bLevel0"),
     document.getElementById("bLevel1"),
     document.getElementById("bLevel2"),
@@ -95,12 +100,14 @@ const simB = {
     document.getElementById("bLimit2"),
   ],
   customMode: document.getElementById("bCustomMode"),
+  strategies: Array.from(document.querySelectorAll('input[name="bStrategy"]')),
   n: document.getElementById("bN"),
   maxModule: document.getElementById("bMaxModule"),
   runBtn: document.getElementById("bRunBtn"),
   stopBtn: document.getElementById("bStopBtn"),
   resetBtn: document.getElementById("resetAllBtnB"),
   statusText: document.getElementById("bStatusText"),
+  resultSummary: document.getElementById("bResultSummary"),
   progress: document.getElementById("bProgress"),
   errorBox: document.getElementById("bErrorBox"),
   avgModule: document.getElementById("bAvgModule"),
@@ -110,7 +117,7 @@ const simB = {
 };
 
 simB.options.forEach((sel) => populateOptionSelect(sel));
-simB.levels.forEach((sel) => {
+simB.currentLevels.concat(simB.targetLevels).forEach((sel) => {
   populateLevelSelect(sel, []);
   updateLevelColor(sel);
 });
@@ -138,19 +145,22 @@ function updateOptionAvailability() {
 updateOptionAvailability();
 
 simB.options.forEach((optionSel, index) => {
-  const levelSel = simB.levels[index];
+  const currentLevelSel = simB.currentLevels[index];
+  const targetLevelSel = simB.targetLevels[index];
   optionSel.addEventListener("change", () => {
     const optionValue = Number(optionSel.value);
     const table = optionValue > 0 ? (LEVEL_TABLE_BY_OPTION[optionValue] || []) : [];
-    populateLevelSelect(levelSel, table);
-    levelSel.disabled = optionValue <= 0;
-    levelSel.value = "0";
-    updateLevelColor(levelSel);
+    [currentLevelSel, targetLevelSel].forEach((levelSel) => {
+      populateLevelSelect(levelSel, table);
+      levelSel.disabled = optionValue <= 0;
+      levelSel.value = "0";
+      updateLevelColor(levelSel);
+    });
     updateOptionAvailability();
   });
 });
 
-simB.levels.forEach((levelSel) => {
+simB.currentLevels.concat(simB.targetLevels).forEach((levelSel) => {
   levelSel.addEventListener("change", () => updateLevelColor(levelSel));
 });
 
@@ -228,10 +238,12 @@ function clearErrorB() {
 
 function readConfigB() {
   return {
-    levels: simB.levels.map((sel) => Number(sel.value)),
+    currentLevels: simB.currentLevels.map((sel) => Number(sel.value)),
+    targetLevels: simB.targetLevels.map((sel) => Number(sel.value)),
     locks: simB.locks.map((lock) => lock.checked),
     limits: simB.limits.map((limit) => limit.checked),
     customMode: simB.customMode.checked,
+    strategy: simB.strategies.find((input) => input.checked)?.value || "better",
     n: Math.max(1, Number(simB.n.value || 1)),
     maxModule: Math.max(1, Number(simB.maxModule.value || 2000)),
   };
@@ -249,8 +261,16 @@ simB.runBtn.addEventListener("click", () => {
   clearErrorB();
   const config = readConfigB();
 
+  const invalidRow = config.targetLevels.findIndex(
+    (target, index) => target > 0 && config.currentLevels[index] <= 0
+  );
+  if (invalidRow >= 0) {
+    showErrorB(`${invalidRow + 1}줄의 현재 레벨을 선택해 주세요.`);
+    return;
+  }
+
   stopWorkerB();
-  workerB = new Worker("./simB.worker.js?v=simB1");
+  workerB = new Worker("./simB.worker.js?v=simB2");
 
   setRunningB(true);
   setStatusB("시뮬 준비 중...", 0);
@@ -275,10 +295,12 @@ simB.runBtn.addEventListener("click", () => {
       setRunningB(false);
       setStatusB("완료", 100);
 
-      const { n, totalModule, totalReroll, totalCustom, hist } = msg;
-      simB.avgModule.textContent = (totalModule / n).toFixed(3);
-      simB.avgReroll.textContent = (totalReroll / n).toFixed(3);
-      simB.avgCustom.textContent = (totalCustom / n).toFixed(3);
+      const { n, successCount, failureCount, totalModule, totalReroll, totalCustom, hist } = msg;
+      const divisor = successCount || 0;
+      simB.avgModule.textContent = divisor ? (totalModule / divisor).toFixed(3) : "-";
+      simB.avgReroll.textContent = divisor ? (totalReroll / divisor).toFixed(3) : "-";
+      simB.avgCustom.textContent = divisor ? (totalCustom / divisor).toFixed(3) : "-";
+      simB.resultSummary.textContent = `성공 ${successCount}/${n} · 모듈 상한 도달 실패 ${failureCount}`;
 
       drawHistogramB(simB.canvas, hist);
     }
@@ -301,7 +323,7 @@ simB.stopBtn.addEventListener("click", () => {
 simB.resetBtn?.addEventListener("click", () => {
   stopWorkerB();
 
-  simB.levels.forEach((sel) => {
+  simB.currentLevels.concat(simB.targetLevels).forEach((sel) => {
     sel.value = "0";
     sel.disabled = true;
     populateLevelSelect(sel, []);
@@ -318,12 +340,16 @@ simB.resetBtn?.addEventListener("click", () => {
     limit.checked = false;
   });
   simB.customMode.checked = false;
+  simB.strategies.forEach((input) => {
+    input.checked = input.value === "better";
+  });
 
   clearErrorB();
   simB.avgModule.textContent = "-";
   simB.avgReroll.textContent = "-";
   simB.avgCustom.textContent = "-";
   setStatusB("대기 중", 0);
+  simB.resultSummary.textContent = "";
 
   const ctx = simB.canvas.getContext("2d");
   ctx.clearRect(0, 0, simB.canvas.width, simB.canvas.height);

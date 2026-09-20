@@ -111,6 +111,10 @@
             <select id="bOption0"></select>
           </label>
           <label class="field">
+            <span>1줄 현재 레벨</span>
+            <select id="bCurrentLevel0" class="levelSelect" disabled></select>
+          </label>
+          <label class="field">
             <span>1줄 목표 레벨</span>
             <select id="bLevel0" class="levelSelect" disabled></select>
           </label>
@@ -120,6 +124,10 @@
           <label class="field">
             <span>2줄 옵션</span>
             <select id="bOption1"></select>
+          </label>
+          <label class="field">
+            <span>2줄 현재 레벨</span>
+            <select id="bCurrentLevel1" class="levelSelect" disabled></select>
           </label>
           <label class="field">
             <span>2줄 목표 레벨</span>
@@ -133,6 +141,10 @@
             <select id="bOption2"></select>
           </label>
           <label class="field">
+            <span>3줄 현재 레벨</span>
+            <select id="bCurrentLevel2" class="levelSelect" disabled></select>
+          </label>
+          <label class="field">
             <span>3줄 목표 레벨</span>
             <select id="bLevel2" class="levelSelect" disabled></select>
           </label>
@@ -141,6 +153,18 @@
       </div>
 
       <hr/>
+
+      <h3>후보 적용 전략</h3>
+      <div class="strategyOptions" role="radiogroup" aria-label="수치재설정 후보 적용 전략">
+        <label class="strategyOption">
+          <span class="check"><input type="radio" name="bStrategy" value="better" checked /> <strong>더 좋은 경우 적용</strong></span>
+          <span class="muted small">전체 목표 달성 또는 자동잠금 조건이 아니라면, 현재보다 나빠지는 활성 미잠금 줄이 하나도 없을 때만 새 결과 전체를 적용합니다.</span>
+        </label>
+        <label class="strategyOption">
+          <span class="check"><input type="radio" name="bStrategy" value="low" /> <strong>저레벨 확보</strong></span>
+          <span class="muted small">전체 목표 달성 또는 자동잠금 조건이 아니라면, 모든 활성 미잠금 줄이 5레벨 이하일 때만 새 결과 전체를 적용합니다.</span>
+        </label>
+      </div>
 
       <div class="row2">
         <label class="check">
@@ -175,6 +199,7 @@
 
       <div class="status">
         <div class="muted" id="bStatusText">대기 중</div>
+        <div class="muted small" id="bResultSummary"></div>
         <progress id="bProgress" value="0" max="100"></progress>
       </div>
     </section>
@@ -204,7 +229,7 @@
   </main>
 
   <script src="./main.js?v=simA3"></script>
-  <script src="./simB.js?v=simB1"></script>
+  <script src="./simB.js?v=simB2"></script>
 
 </body>
 </html>
